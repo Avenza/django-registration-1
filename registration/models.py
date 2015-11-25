@@ -237,8 +237,8 @@ class RegistrationProfile(models.Model):
                 (self.user.date_joined + expiration_date <= datetime_now()))
     activation_key_expired.boolean = True
 
-    def send_activation_email(self, site, request=None,
-            email_subject_template='registration/activation_email_subject.txt'
+    def send_activation_email(self, site, request=None, 
+            email_subject_template='registration/activation_email_subject.txt',
             email_template='registration/activation_email.txt'):
         """
         Send an activation email to the user associated with this
