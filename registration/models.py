@@ -237,7 +237,9 @@ class RegistrationProfile(models.Model):
                 (self.user.date_joined + expiration_date <= datetime_now()))
     activation_key_expired.boolean = True
 
-    def send_activation_email(self, site, request=None):
+    def send_activation_email(self, site, request=None,
+            email_subject_template='registration/activation_email_subject.txt'
+            email_template='registration/activation_email.txt'):
         """
         Send an activation email to the user associated with this
         ``RegistrationProfile``.
@@ -293,28 +295,24 @@ class RegistrationProfile(models.Model):
         # can overwrite some of the values like user
         # if django.contrib.auth.context_processors.auth is used
         ctx_dict.update({
-            'user': self.user,
             'activation_key': self.activation_key,
             'expiration_days': settings.ACCOUNT_ACTIVATION_DAYS,
             'site': site,
         })
         subject = (getattr(settings, 'REGISTRATION_EMAIL_SUBJECT_PREFIX', '') +
-                   render_to_string(
-                       'registration/activation_email_subject.txt', ctx_dict))
+                   render_to_string(email_subject_template, ctx_dict))
         # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
         from_email = getattr(settings, 'REGISTRATION_DEFAULT_FROM_EMAIL',
                              settings.DEFAULT_FROM_EMAIL)
-        message_txt = render_to_string('registration/activation_email.txt',
-                                       ctx_dict)
+        message_txt = render_to_string(email_template, ctx_dict)
 
         email_message = EmailMultiAlternatives(subject, message_txt,
                                                from_email, [self.user.email])
 
         if getattr(settings, 'REGISTRATION_EMAIL_HTML', True):
             try:
-                message_html = render_to_string(
-                    'registration/activation_email.html', ctx_dict)
+                message_html = render_to_string(email_template, ctx_dict)
             except TemplateDoesNotExist:
                 pass
             else:
